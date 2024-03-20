@@ -4,25 +4,48 @@ using UnityEngine;
 
 public class BasicBumper : MonoBehaviour
 {
-    [SerializeField] float bounceForce;
+    public float bounceForce;
     //list if tag that should bump
+
+    public Animator animator;
+
+    private void Awake()
+    {
+        animator = GetComponent<Animator>();
+    }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.transform.tag == "Bumpable")
+        if (collision.transform.tag == "Player")
         {
             Rigidbody collisionRB = collision.rigidbody;
-
             Vector3 collisionDirection = collision.transform.position - transform.position;
-            collisionDirection.y = 0;
-            collisionDirection = collisionDirection.normalized;
-            collisionRB.AddForce(collisionDirection * bounceForce);
+            Bump(collisionRB, collisionDirection);
 
             //collisionRB.AddExplosionForce(bounceForce, collision.contacts[0].point, 2);
-            Debug.Log("Bump on : " + gameObject.name + " By : " + collision.gameObject.name);
         }
-        //check if tag == childofbumpable
+        if(collision.transform.tag == "Enemy")
+        {
+            Rigidbody collisionRB = collision.rigidbody;
+            Vector3 collisionDirection = collision.transform.position - transform.position;
+            Bump(collisionRB, collisionDirection);
+        }
+        if (collision.transform.tag == "MobileBumper" || collision.transform.tag == "Bumper")
+        {
+            animator.SetTrigger("Bump");
+        }
 
+        //Debug.Log("Bump on : " + gameObject.name /* + " By : " + collision.gameObject.name*/);
         //Debug.Log("Unvalid Bump on : " + gameObject.name + " By : " + collision.gameObject.name);
     }
+
+    void Bump(Rigidbody rb, Vector3 dir)
+    {
+        dir.y = 0;
+        dir = dir.normalized;
+        rb.AddForce(dir * bounceForce);
+        animator.SetTrigger("Bump");
+    }
 }
+
+//Debug.Log("Bump on : " + gameObject.name + " By : " + collision.gameObject.name);

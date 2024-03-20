@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -17,11 +18,25 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float bumpTime, bumpTimer;
     [SerializeField] float swipeTime, swipeTimer;
 
+    [SerializeField] Image dashBarMask;
+    float originalDashBarSize;
+
     //use a isgrounded for isOnSliddingTerrain
 
-    void Start()
+    private void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        originalDashBarSize = dashBarMask.rectTransform.rect.width;
+
+        Init();
+    }
+
+    public void Init()
+    {
+        rb.velocity = new Vector3(0, 0, 0);
+        transform.position = new Vector3(0, 0.9f, 0);
+        swipeTimer = 0.0f;
+        UpdateDashBar(swipeTime, swipeTimer);
     }
 
     void Update()
@@ -37,36 +52,61 @@ public class PlayerController : MonoBehaviour
             if(touch.phase == TouchPhase.Ended)
             {
                 swipeDelta = touch.position - initialPos;
-                if (swipeDelta != Vector2.zero)
+                if (swipeDelta != Vector2.zero && swipeTimer <= 0.0f)
                     swipePerformed(swipeDelta);
             }
         }
 
         Vector3 pos = transform.position;
-        if(pos.y < 2.0f)
+        if(pos.y < -2.0f)
         {
             Fall();
         }
-    }
-    
-    private void FixedUpdate()
-    {
-        //check isBounce
 
-        Vector3 velocity = transform.position;
-        velocity.x += Input.GetAxis("Horizontal") * speed * Time.fixedDeltaTime;
-        velocity.z += Input.GetAxis("Vertical") * speed * Time.fixedDeltaTime;
-
-        transform.position = velocity;
+        if(swipeTimer > 0.0f)
+        {
+            swipeTimer -= Time.deltaTime;
+            UpdateDashBar(swipeTime, swipeTimer);
+        }
+        else if (swipeTimer < 0.0f)
+        {
+            swipeTimer = 0.0f;
+        }
+        if (bumpTimer > 0.0f)
+        {
+            bumpTimer -= Time.deltaTime;
+        }
+        else if (bumpTimer < 0.0f)
+        {
+            bumpTimer = 0.0f;
+        }
     }
 
     void swipePerformed(Vector2 direction)
     {
-        //check isBounce
+        //Debug.Log("swipe force : " + direction);
         Vector3 velocity = new Vector3();
         velocity.x = direction.x;
         velocity.z = direction.y;
         rb.AddForce(velocity);
+        swipeTimer = swipeTime;
+    }
+    bool CanSwipe()
+    {
+        return (bumpTimer <= 0.0f && swipeTimer <= 0.0f);
+    }
+
+    public void UpdateDashBar(float total, float actual)
+    {
+        dashBarMask.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, originalDashBarSize * (actual / total));
+    }
+
+    private void OnTriggerEnter(Collider trigger)
+    {
+        if (trigger.transform.tag == "MobileBumper")
+        {
+            trigger.GetComponent<BasicBumper>().animator.SetTrigger("Bump");
+        }
     }
 
     void Fall()

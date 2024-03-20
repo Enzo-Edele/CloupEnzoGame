@@ -9,6 +9,8 @@ public class GameManager : MonoBehaviour
 
     public PlayerController player;
 
+    List<Enemy> enemiesList = new List<Enemy>();
+
     public Color highResistanceIndicator, LowResistanceIndicator;
 
     public static GameManager Instance { get; private set; }
@@ -25,6 +27,8 @@ public class GameManager : MonoBehaviour
         score = 0;
         lives = 1;
         UIManager.Instance.UpdateScore(score);
+        ClearEnemy();
+        player.Init();
     }
 
     void Update()
@@ -44,5 +48,33 @@ public class GameManager : MonoBehaviour
     {
         score += toAdd;
         UIManager.Instance.UpdateScore(score);
+    }
+
+    public void AddEnemy(Enemy enemy)
+    {
+        for(int i = 0; i < enemiesList.Count; i++)
+            if (enemiesList[i] == enemy)
+                return;
+        enemiesList.Add(enemy);
+    }
+    public void RemoveEnemy(Enemy enemy)
+    {
+        for (int i = 0; i < enemiesList.Count; i++)
+        {
+            if (enemiesList[i] == enemy)
+            {
+                enemiesList.RemoveAt(i);
+                return;
+            }
+        }
+    }
+    public void ClearEnemy()
+    {
+        for (int i = 0; i < enemiesList.Count; i++)
+        {
+            Destroy(enemiesList[i].gameObject);
+            enemiesList.RemoveAt(i);
+        }
+        enemiesList.Clear();
     }
 }

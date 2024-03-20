@@ -5,7 +5,9 @@ TagManager:
   serializedVersion: 2
   tags:
   - Ground
-  - Bumpable
+  - Bumper
+  - MobileBumper
+  - Enemy
   layers:
   - Default
   - TransparentFX

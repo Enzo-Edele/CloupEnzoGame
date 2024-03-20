@@ -5,7 +5,7 @@ using TMPro;
 
 public class UIManager : MonoBehaviour
 {
-    TMP_Text score;
+    [SerializeField]TMP_Text score;
 
     public static UIManager Instance { get; private set; }
     void Awake()
@@ -14,6 +14,6 @@ public class UIManager : MonoBehaviour
     }
     public void UpdateScore(int nScore)
     {
-        //score.text = nScore.ToString();
+        score.text = nScore.ToString();
     }
 }
