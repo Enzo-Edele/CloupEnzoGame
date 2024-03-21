@@ -104,11 +104,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pointer: {fileID: 5596344201603515169}
   moveForce: 200
-  rotateSpeed: 0
+  rotateSpeed: 0.1
   bounceForce: 200
   scoreAwarded: 1
   moveTime: 1
   moveTimer: 0
+  isBoss: 0
 --- !u!135 &318885388561954687
 SphereCollider:
   m_ObjectHideFlags: 0

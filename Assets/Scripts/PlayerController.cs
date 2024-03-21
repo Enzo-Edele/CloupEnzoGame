@@ -8,6 +8,7 @@ public class PlayerController : MonoBehaviour
     Rigidbody rb;
 
     [SerializeField] float speed;
+    [SerializeField] float velocityMax;
 
     Vector3 velocity;
 
@@ -25,6 +26,8 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
+        DontDestroyOnLoad(gameObject);
+
         rb = GetComponent<Rigidbody>();
         originalDashBarSize = dashBarMask.rectTransform.rect.width;
 
@@ -52,7 +55,7 @@ public class PlayerController : MonoBehaviour
             if(touch.phase == TouchPhase.Ended)
             {
                 swipeDelta = touch.position - initialPos;
-                if (swipeDelta != Vector2.zero && swipeTimer <= 0.0f)
+                if (swipeDelta != Vector2.zero && CanSwipe())
                     swipePerformed(swipeDelta);
             }
         }
@@ -80,6 +83,15 @@ public class PlayerController : MonoBehaviour
         {
             bumpTimer = 0.0f;
         }
+
+        Vector3 velocity = rb.velocity;
+        if (velocity.y > 0)
+            velocity.y = 0;
+        rb.velocity = velocity;
+        
+        rb.velocity = Vector3.ClampMagnitude(rb.velocity, velocityMax);
+
+        //Debug.Log("velocity : " + rb.velocity);
     }
 
     void swipePerformed(Vector2 direction)
@@ -105,8 +117,12 @@ public class PlayerController : MonoBehaviour
     {
         if (trigger.transform.tag == "MobileBumper")
         {
-            trigger.GetComponent<BasicBumper>().animator.SetTrigger("Bump");
+            trigger.GetComponent<Bumper>().animator.SetTrigger("Bump");
         }
+    }
+    public void SetBumpTime(float time)
+    {
+        bumpTime = time;
     }
 
     void Fall()

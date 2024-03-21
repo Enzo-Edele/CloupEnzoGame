@@ -4,13 +4,16 @@ using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
 {
-    [SerializeField]GameObject enemyPrefab;
+    [SerializeField] GameObject enemyPrefab;
+    [SerializeField] GameObject bossPrefab;
     [SerializeField] float timeSpawnMax, timeSpawnMin, timerSpawn;
     [SerializeField] List<Transform> spawnPosition = new List<Transform>();
 
-    void Start()
+    [SerializeField] List<Transform> bossSpawnPos = new List<Transform>();
+
+    private void Start()
     {
-        
+        GameManager.Instance.spawner = this;
     }
 
     void Update()
@@ -26,6 +29,31 @@ public class EnemySpawner : MonoBehaviour
 
     void SpawnEnemy()
     {
-        Instantiate(enemyPrefab, spawnPosition[Random.Range(0, spawnPosition.Count)].position, Quaternion.identity);
+        Vector3 pos = spawnPosition[Random.Range(0, spawnPosition.Count)].position;
+        Instantiate(enemyPrefab, pos, Quaternion.identity);
+    }
+
+    public void SpawnBoss()
+    {
+        for(int i = 0; i < bossSpawnPos.Count; i++)
+        {
+            Instantiate(bossPrefab, bossSpawnPos[i].position, Quaternion.identity);
+        }
+    }
+
+    public void AddBossSpawn(Transform spawnPoint)
+    {
+        for (int i = 0; i < bossSpawnPos.Count; i++)
+            if (bossSpawnPos[i] == spawnPoint)
+                return;
+        bossSpawnPos.Add(spawnPoint);
+    }
+    public void ClearBossSpawn()
+    {
+        for (int i = 0; i < bossSpawnPos.Count; i++)
+        {
+            Destroy(bossSpawnPos[i].gameObject);
+        }
+        bossSpawnPos.Clear();
     }
 }

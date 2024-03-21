@@ -13,16 +13,14 @@ public class Enemy : MonoBehaviour
     [SerializeField] int scoreAwarded;
     [SerializeField] float moveTime, moveTimer;
 
-    public enum IAState
-    {
-        Face,
-        Move
-    }
-    IAState state;
+    [SerializeField] bool isBoss;
 
     void Start()
     {
-        GameManager.Instance.AddEnemy(this);
+        if (!isBoss)
+            GameManager.Instance.AddEnemy(this);
+        else
+            GameManager.Instance.AddBoss(this);
         rb = GetComponent<Rigidbody>();
         moveTimer = moveTime;
     }
@@ -33,7 +31,7 @@ public class Enemy : MonoBehaviour
         Vector3 positionPlayer = GameManager.Instance.player.transform.position;
 
         Quaternion rotation = Quaternion.LookRotation(positionPlayer - transform.position, transform.TransformDirection(Vector3.back));
-        pointer.rotation = new Quaternion(0, 0, rotation.z, rotation.w);
+        pointer.rotation = new Quaternion(0, rotation.y, 0, rotation.w);
         transform.rotation = Quaternion.RotateTowards(transform.rotation, pointer.rotation, rotateSpeed);
 
         if(moveTimer > 0.0f)
@@ -69,17 +67,20 @@ public class Enemy : MonoBehaviour
 
     void Fall()
     {
-        GameManager.Instance.UpdateScore(scoreAwarded);
-        GameManager.Instance.RemoveEnemy(this);
+        GameManager.Instance.EnemyFall(scoreAwarded);
+        if(!isBoss)
+            GameManager.Instance.RemoveEnemy(this);
+        else
+            GameManager.Instance.RemoveBoss(this);
         Destroy(gameObject);
     }
     private void OnTriggerEnter(Collider trigger)
     {
         if (trigger.transform.tag == "MobileBumper")
         {
-            trigger.GetComponent<BasicBumper>().animator.SetTrigger("Bump");
+            trigger.GetComponent<Bumper>().animator.SetTrigger("Bump");
             Rigidbody collisionRB = trigger.gameObject.GetComponentInParent<Rigidbody>();
-            BasicBumper bumper = trigger.gameObject.GetComponent<BasicBumper>();
+            Bumper bumper = trigger.gameObject.GetComponent<Bumper>();
 
             Vector3 collisionDirection = trigger.transform.position - transform.position;
             collisionDirection.y = 0;

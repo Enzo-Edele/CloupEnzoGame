@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BasicBumper : MonoBehaviour
+public class Bumper : MonoBehaviour
 {
     public float bounceForce;
     //list if tag that should bump
@@ -21,6 +21,8 @@ public class BasicBumper : MonoBehaviour
             Rigidbody collisionRB = collision.rigidbody;
             Vector3 collisionDirection = collision.transform.position - transform.position;
             Bump(collisionRB, collisionDirection);
+
+            collision.gameObject.GetComponent<PlayerController>().SetBumpTime(0.5f);
 
             //collisionRB.AddExplosionForce(bounceForce, collision.contacts[0].point, 2);
         }
