@@ -11,16 +11,20 @@ public class GameManager : MonoBehaviour
 
     public int level;
     public List<int> levelObjectives = new List<int>();
-    bool inBossFight;
+    public bool inBossFight;
 
     public PlayerController player;
     public EnemySpawner spawner;
+    public CameraManager cam;
 
     List<Enemy> enemiesList = new List<Enemy>();
 
     List<Enemy> bossList = new List<Enemy>();
 
     public Color highResistanceIndicator, LowResistanceIndicator;
+
+    public GameObject EnemyIndicatorPrefab;
+    [SerializeField] GameObject FireWorkParticle;
 
     public enum GameState
     {
@@ -41,7 +45,6 @@ public class GameManager : MonoBehaviour
                 Time.timeScale = 0.0f;
                 break;
             case GameState.victory:
-                Time.timeScale = 1.0f;
                 break;
         }
     }
@@ -57,17 +60,18 @@ public class GameManager : MonoBehaviour
         score = 0;
         lives = 1;
         level = 1;
-        StartGame();
+        StartLevel();
     }
-    void StartGame()
+    void StartLevel()
     {
-        fallen = 0;
-        ClearEnemy();
-        ClearBoss();
-        player.Init();
-        inBossFight = false;
-        UIManager.Instance.UpdateScore(levelObjectives[level - 1] - fallen);
-        UIManager.Instance.UpdateLevel(level);
+            fallen = 0;
+            ClearEnemy();
+            ClearBoss();
+            player.Init();
+            inBossFight = false;
+            ChangeGameState(GameState.inGame);
+            UIManager.Instance.UpdateScore(levelObjectives[level - 1] - fallen);
+            UIManager.Instance.UpdateLevel(level);
     }
 
     void Update()
@@ -80,7 +84,7 @@ public class GameManager : MonoBehaviour
         lives += toAdd;
         if(lives <= 0)
         {
-            StartGame();
+            StartCoroutine(Respawn(0.5f));
         }
     }
     public void EnemyFall(int point)
@@ -102,7 +106,7 @@ public class GameManager : MonoBehaviour
             switch (level)
             {
                 case 1:
-                    NexLevel();
+                    StartCoroutine(PrepareNextLevel(5.0f));
                     break;
                 case 2:
                     SpawnBoss();
@@ -126,14 +130,47 @@ public class GameManager : MonoBehaviour
         else
         {
             UIManager.Instance.ActivateVictoryUI();
+            return;
         }
         UIManager.Instance.UpdateLevel(level);
-        StartGame();
+        StartLevel();
     }
     void SpawnBoss()
     {
         inBossFight = true;
         spawner.SpawnBoss();
+    }
+
+    public IEnumerator Respawn(float duration)
+    {
+        float elapsed = 0.0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+
+            yield return null;
+        }
+
+        StartLevel();
+    }
+    public IEnumerator PrepareNextLevel(float duration)
+    {
+        float elapsed = 0.0f;
+
+        ChangeGameState(GameState.victory);
+        ClearEnemy();
+        Instantiate(FireWorkParticle, player.transform.position, Quaternion.identity);
+        player.rb.velocity = Vector3.zero;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+
+            yield return null;
+        }
+
+        NexLevel();
     }
 
     public void AddEnemy(Enemy enemy) {
@@ -152,7 +189,7 @@ public class GameManager : MonoBehaviour
     }
     public void ClearEnemy() {
         for (int i = 0; i < enemiesList.Count; i++) {
-            Destroy(enemiesList[i].gameObject);
+            enemiesList[i].Die();
         }
         enemiesList.Clear();
     }
@@ -171,7 +208,7 @@ public class GameManager : MonoBehaviour
         }
         UIManager.Instance.UpdateScore(levelObjectives[level - 1] - fallen);
         if (bossList.Count == 0)
-            NexLevel();
+            StartCoroutine(PrepareNextLevel(5.0f));
     }
     public void ClearBoss() {
         for (int i = 0; i < bossList.Count; i++) {

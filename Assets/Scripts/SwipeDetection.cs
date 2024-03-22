@@ -12,6 +12,7 @@ public class SwipeDetection : MonoBehaviour
     [SerializeField] private float swipeThreashold;
     private Vector2 inititialPos;
     private Vector2 currentPos => position.ReadValue<Vector2>();
+
     private void Awake()
     {
         position.Enable();

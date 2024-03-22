@@ -5,24 +5,30 @@ using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
-    Rigidbody rb;
+    public Rigidbody rb;
 
     [SerializeField] float speed;
     [SerializeField] float velocityMax;
 
-    Vector3 velocity;
-
     Vector2 initialPos;
     Vector2 swipeDelta;
 
-    bool isBump;
-    [SerializeField] float bumpTime, bumpTimer;
+    [SerializeField] float bumpTimer;
+    public float bumpTime;
     [SerializeField] float swipeTime, swipeTimer;
+
+    [SerializeField] GameObject bumpImage;
+    [SerializeField] Image bumpBarMask;
+    float originalBumpBarSize;
 
     [SerializeField] Image dashBarMask;
     float originalDashBarSize;
 
-    //use a isgrounded for isOnSliddingTerrain
+    [SerializeField] GameObject deathParticle;
+
+    bool hasFell;
+
+    //use a isgrounded for isOnSliddingTerrain (suggestion)
 
     private void Awake()
     {
@@ -30,6 +36,7 @@ public class PlayerController : MonoBehaviour
 
         rb = GetComponent<Rigidbody>();
         originalDashBarSize = dashBarMask.rectTransform.rect.width;
+        originalBumpBarSize = bumpBarMask.rectTransform.rect.width;
 
         Init();
     }
@@ -40,6 +47,7 @@ public class PlayerController : MonoBehaviour
         transform.position = new Vector3(0, 0.9f, 0);
         swipeTimer = 0.0f;
         UpdateDashBar(swipeTime, swipeTimer);
+        hasFell = false;
     }
 
     void Update()
@@ -47,7 +55,7 @@ public class PlayerController : MonoBehaviour
         if(Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
-            //detect stationnary for charge bump
+            //use stationnary for charge a bump (suggestion)
             if(touch.phase == TouchPhase.Began)
             {
                 initialPos = touch.position;
@@ -61,7 +69,7 @@ public class PlayerController : MonoBehaviour
         }
 
         Vector3 pos = transform.position;
-        if(pos.y < -2.0f)
+        if(pos.y < -1.0f && !hasFell)
         {
             Fall();
         }
@@ -78,10 +86,12 @@ public class PlayerController : MonoBehaviour
         if (bumpTimer > 0.0f)
         {
             bumpTimer -= Time.deltaTime;
+            UpdateBumpBar(bumpTime, bumpTimer);
         }
         else if (bumpTimer < 0.0f)
         {
             bumpTimer = 0.0f;
+            bumpImage.SetActive(false);
         }
 
         Vector3 velocity = rb.velocity;
@@ -105,12 +115,16 @@ public class PlayerController : MonoBehaviour
     }
     bool CanSwipe()
     {
-        return (bumpTimer <= 0.0f && swipeTimer <= 0.0f);
+        return (bumpTimer <= 0.0f && swipeTimer <= 0.0f && !(GameManager.gameState == GameManager.GameState.victory));
     }
 
     public void UpdateDashBar(float total, float actual)
     {
         dashBarMask.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, originalDashBarSize * (actual / total));
+    }
+    public void UpdateBumpBar(float total, float actual)
+    {
+        bumpBarMask.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, originalBumpBarSize * (actual / total));
     }
 
     private void OnTriggerEnter(Collider trigger)
@@ -120,13 +134,17 @@ public class PlayerController : MonoBehaviour
             trigger.GetComponent<Bumper>().animator.SetTrigger("Bump");
         }
     }
-    public void SetBumpTime(float time)
+    public void SetBumpTimer(float time)
     {
         bumpTime = time;
+        bumpTimer = time;
+        bumpImage.SetActive(true);
     }
 
     void Fall()
     {
+        Instantiate(deathParticle, transform.position, Quaternion.identity);
+        hasFell = true;
         GameManager.Instance.ChangeLife(-1);
     }
 }

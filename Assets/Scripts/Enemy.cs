@@ -15,6 +15,8 @@ public class Enemy : MonoBehaviour
 
     [SerializeField] bool isBoss;
 
+    [SerializeField] GameObject deathParticle;
+
     void Start()
     {
         if (!isBoss)
@@ -48,7 +50,7 @@ public class Enemy : MonoBehaviour
         }
         Vector3 pos = transform.position;
 
-        if (pos.y < -2.0f)
+        if (pos.y < -1.0f && GameManager.gameState != GameManager.GameState.victory)
         {
             Fall();
         }
@@ -72,11 +74,29 @@ public class Enemy : MonoBehaviour
             GameManager.Instance.RemoveEnemy(this);
         else
             GameManager.Instance.RemoveBoss(this);
+        Die();
+    }
+    public void Die()
+    {
+        Instantiate(deathParticle, transform.position, Quaternion.identity);
         Destroy(gameObject);
     }
+
     private void OnTriggerEnter(Collider trigger)
     {
-        if (trigger.transform.tag == "MobileBumper")
+        if (trigger.transform.tag == "MobileBumperEnemy")
+        {
+            trigger.GetComponent<Bumper>().animator.SetTrigger("Bump");
+            Rigidbody collisionRB = trigger.gameObject.GetComponentInParent<Rigidbody>();
+            Bumper bumper = trigger.gameObject.GetComponent<Bumper>();
+
+            Vector3 collisionDirection = trigger.transform.position - transform.position;
+            collisionDirection.y = 0;
+            collisionDirection = collisionDirection.normalized;
+            collisionRB.AddForce(collisionDirection * bounceForce);
+            rb.AddForce(-collisionDirection * bumper.bounceForce);
+        }
+        if (trigger.transform.tag == "MobileBumperPlayer")
         {
             trigger.GetComponent<Bumper>().animator.SetTrigger("Bump");
             Rigidbody collisionRB = trigger.gameObject.GetComponentInParent<Rigidbody>();
@@ -88,8 +108,8 @@ public class Enemy : MonoBehaviour
             collisionRB.AddForce(collisionDirection * bounceForce);
             rb.AddForce(-collisionDirection * bumper.bounceForce);
 
-            //collisionRB.AddExplosionForce(bounceForce, collision.contacts[0].point, 2);
-            //Debug.Log("Bump on : " + gameObject.name + " By : " + collision.gameObject.name);
+            trigger.gameObject.GetComponentInParent<PlayerController>().SetBumpTimer(0.5f);
+            GameManager.Instance.cam.ShakeCamera();
         }
     }
 }

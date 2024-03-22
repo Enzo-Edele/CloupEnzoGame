@@ -26,7 +26,7 @@ public class UIManager : MonoBehaviour
     public void UpdateScore(int nScore)
     {
         score.text = nScore.ToString();
-        if (nScore <= 0)
+        if (nScore <= 0 && GameManager.Instance.inBossFight)
             score.text = "Boss : " + GameManager.Instance.BossListCount();
     }
     public void UpdateLevel(int nLevel)

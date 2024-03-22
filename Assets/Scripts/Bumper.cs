@@ -22,7 +22,9 @@ public class Bumper : MonoBehaviour
             Vector3 collisionDirection = collision.transform.position - transform.position;
             Bump(collisionRB, collisionDirection);
 
-            collision.gameObject.GetComponent<PlayerController>().SetBumpTime(0.5f);
+            collision.gameObject.GetComponent<PlayerController>().SetBumpTimer(0.5f);
+
+            GameManager.Instance.cam.ShakeCamera();
 
             //collisionRB.AddExplosionForce(bounceForce, collision.contacts[0].point, 2);
         }
@@ -38,7 +40,6 @@ public class Bumper : MonoBehaviour
         }
 
         //Debug.Log("Bump on : " + gameObject.name /* + " By : " + collision.gameObject.name*/);
-        //Debug.Log("Unvalid Bump on : " + gameObject.name + " By : " + collision.gameObject.name);
     }
 
     void Bump(Rigidbody rb, Vector3 dir)
@@ -49,5 +50,3 @@ public class Bumper : MonoBehaviour
         animator.SetTrigger("Bump");
     }
 }
-
-//Debug.Log("Bump on : " + gameObject.name + " By : " + collision.gameObject.name);

@@ -110,6 +110,7 @@ MonoBehaviour:
   moveTime: 1
   moveTimer: 0
   isBoss: 0
+  deathParticle: {fileID: 975578308468458595, guid: d702ef0d8fe8c674a8c0f677f1bfa49c, type: 3}
 --- !u!135 &318885388561954687
 SphereCollider:
   m_ObjectHideFlags: 0
